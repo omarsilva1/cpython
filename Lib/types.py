@@ -297,7 +297,8 @@ def coroutine(func):
 
 GenericAlias = type(list[int])
 UnionType = type(int | str)
-
+IntersectionType = type(int | str)
+# maybe new type? fix circular import by importing directly here
 EllipsisType = type(Ellipsis)
 NoneType = type(None)
 NotImplementedType = type(NotImplemented)

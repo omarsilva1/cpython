@@ -49,6 +49,7 @@ __all__ = [
     'Type',
     'TypeVar',
     'Union',
+    'Intersection',
 
     # ABCs (from collections.abc).
     'AbstractSet',  # collections.abc.Set.
@@ -169,7 +170,7 @@ def _type_check(arg, msg, is_argument=True, module=None, *, allow_special_forms=
         return arg
     if isinstance(arg, _SpecialForm) or arg in (Generic, Protocol):
         raise TypeError(f"Plain {arg} is not valid as type argument")
-    if isinstance(arg, (type, TypeVar, ForwardRef, types.UnionType, ParamSpec,
+    if isinstance(arg, (type, TypeVar, ForwardRef, types.UnionType, types.IntersectionType, ParamSpec,
                         ParamSpecArgs, ParamSpecKwargs)):
         return arg
     if not callable(arg):
@@ -215,7 +216,7 @@ def _collect_type_vars(types_, typevar_types=None):
     for t in types_:
         if isinstance(t, typevar_types) and t not in tvars:
             tvars.append(t)
-        if isinstance(t, (_GenericAlias, GenericAlias, types.UnionType)):
+        if isinstance(t, (_GenericAlias, GenericAlias, types.UnionType, types.IntersectionType)):
             tvars.extend([t for t in t.__parameters__ if t not in tvars])
     return tuple(tvars)
 
@@ -519,6 +520,25 @@ def Union(self, parameters):
     if len(parameters) == 2 and type(None) in parameters:
         return _UnionGenericAlias(self, parameters, name="Optional")
     return _UnionGenericAlias(self, parameters)
+
+@_SpecialForm
+def Intersection(self, parameters):
+    """
+    Intersection type; Intersection[X, Y] means X and Y.
+        """
+    print("Intersection types!")
+    if parameters == ():
+        raise TypeError("Cannot take a Intersection of no types.")
+    if not isinstance(parameters, tuple):
+        parameters = (parameters,)
+    msg = "Intersection[arg, ...]: each arg must be a type."
+    parameters = tuple(_type_check(p, msg) for p in parameters)
+    parameters = _remove_dups_flatten(parameters)
+    if len(parameters) == 1:
+        return parameters[0]
+    # if len(parameters) == 2 and type(None) in parameters:
+    #     return _IntersectionGenericAlias(self, parameters, name="Optional")
+    return _IntersectionGenericAlias(self, parameters)
 
 @_SpecialForm
 def Optional(self, parameters):
@@ -1268,6 +1288,39 @@ class _UnionGenericAlias(_GenericAlias, _root=True):
         func, (origin, args) = super().__reduce__()
         return func, (Union, args)
 
+
+class _IntersectionGenericAlias(_GenericAlias, _root=True):
+    def copy_with(self, params):
+        return Intersection[params]
+
+    def __eq__(self, other):
+        if not isinstance(other, (_IntersectionGenericAlias, types.IntersectionType)):
+            return NotImplemented
+        return set(self.__args__) == set(other.__args__)
+
+    def __hash__(self):
+        return hash(frozenset(self.__args__))
+
+    def __repr__(self):
+        args = self.__args__
+        if len(args) == 2:
+            if args[0] is type(None):
+                return f'typing.Optional[{_type_repr(args[1])}]'
+            elif args[1] is type(None):
+                return f'typing.Optional[{_type_repr(args[0])}]'
+        return super().__repr__()
+
+    def __instancecheck__(self, obj):
+        return self.__subclasscheck__(type(obj))
+
+    def __subclasscheck__(self, cls):
+        for arg in self.__args__:
+            if issubclass(cls, arg):
+                return True
+
+    def __reduce__(self):
+        func, (origin, args) = super().__reduce__()
+        return func, (Intersection, args)
 
 def _value_and_type_iter(parameters):
     return ((p, type(p)) for p in parameters)

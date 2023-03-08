@@ -3,6 +3,7 @@
 #include "Python.h"
 #include "pycore_object.h"
 #include "pycore_unionobject.h"   // _Py_union_type_or, _PyGenericAlias_Check
+#include "pycore_intersectionobject.h"   // _Py_intersection_type_and
 #include "structmember.h"         // PyMemberDef
 
 typedef struct {
@@ -637,6 +638,8 @@ ga_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
 static PyNumberMethods ga_as_number = {
         .nb_or = _Py_union_type_or, // Add __or__ function
+        .nb_and = _Py_intersection_type_and, // Add __and__ function
+
 };
 
 // TODO:

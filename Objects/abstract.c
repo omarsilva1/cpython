@@ -8,6 +8,7 @@
 #include "pycore_pyerrors.h"      // _PyErr_Occurred()
 #include "pycore_pystate.h"       // _PyThreadState_GET()
 #include "pycore_unionobject.h"   // _PyUnion_Check()
+#include "pycore_intersectionobject.h"   // _PyIntersection_Check()
 #include <ctype.h>
 #include <stddef.h>               // offsetof()
 
@@ -2601,7 +2602,7 @@ object_isinstance(PyObject *inst, PyObject *cls)
     }
     else {
         if (!check_class(cls,
-            "isinstance() arg 2 must be a type, a tuple of types, or a union"))
+            "isinstance() arg 2 must be a type, a tuple of types, a union or an intersection"))
             return -1;
         retval = _PyObject_LookupAttr(inst, &_Py_ID(__class__), &icls);
         if (icls != NULL) {
@@ -2699,7 +2700,7 @@ recursive_issubclass(PyObject *derived, PyObject *cls)
 
     if (!_PyUnion_Check(cls) && !check_class(cls,
                             "issubclass() arg 2 must be a class,"
-                            " a tuple of classes, or a union")) {
+                            " a tuple of classes, a union or an intersection")) {
         return -1;
     }
 

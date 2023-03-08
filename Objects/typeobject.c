@@ -12,6 +12,7 @@
 #include "pycore_typeobject.h"    // struct type_cache
 #include "pycore_unionobject.h"   // _Py_union_type_or
 #include "pycore_frame.h"         // _PyInterpreterFrame
+#include "pycore_intersectionobject.h"   // _Py_intersection_type_and
 #include "opcode.h"               // MAKE_CELL
 #include "structmember.h"         // PyMemberDef
 
@@ -4388,6 +4389,7 @@ type_is_gc(PyTypeObject *type)
 
 static PyNumberMethods type_as_number = {
         .nb_or = _Py_union_type_or, // Add __or__ function
+        .nb_and = _Py_intersection_type_and, // Add __and__ function
 };
 
 PyTypeObject PyType_Type = {

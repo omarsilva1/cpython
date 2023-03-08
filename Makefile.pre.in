@@ -485,6 +485,7 @@ OBJECT_OBJS=	\
 		Objects/unicodeobject.o \
 		Objects/unicodectype.o \
 		Objects/unionobject.o \
+        Objects/intersectionobject.o \
 		Objects/weakrefobject.o
 
 DEEPFREEZE_OBJS = Python/deepfreeze/deepfreeze.o
@@ -1652,6 +1653,7 @@ PYTHON_HEADERS= \
 		$(srcdir)/Include/internal/pycore_ucnhash.h \
 		$(srcdir)/Include/internal/pycore_unionobject.h \
 		$(srcdir)/Include/internal/pycore_unicodeobject.h \
+        $(srcdir)/Include/internal/pycore_intersectionobject.h \
 		$(srcdir)/Include/internal/pycore_warnings.h \
 		$(DTRACE_HEADERS) \
 		@PLATFORM_HEADERS@ \

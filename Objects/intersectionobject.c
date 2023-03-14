@@ -333,7 +333,7 @@ intersection_repr(PyObject *self)
     _PyUnicodeWriter writer;
     _PyUnicodeWriter_Init(&writer);
      for (Py_ssize_t i = 0; i < len; i++) {
-        if (i > 0 && _PyUnicodeWriter_WriteASCIIString(&writer, " | ", 3) < 0) {
+        if (i > 0 && _PyUnicodeWriter_WriteASCIIString(&writer, " & ", 3) < 0) {
             goto error;
         }
         PyObject *p = PyTuple_GET_ITEM(alias->args, i);
@@ -385,7 +385,7 @@ intersection_getitem(PyObject *self, PyObject *item)
         Py_INCREF(res);
         for (Py_ssize_t iarg = 1; iarg < nargs; iarg++) {
             PyObject *arg = PyTuple_GET_ITEM(newargs, iarg);
-            Py_SETREF(res, PyNumber_Or(res, arg));
+            Py_SETREF(res, PyNumber_And(res, arg));
             if (res == NULL) {
                 break;
             }

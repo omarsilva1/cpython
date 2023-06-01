@@ -265,7 +265,7 @@ def _deduplicate(params):
     return params
 
 
-def _remove_dups_flatten(parameters):
+def _remove_dups_flatten_union(parameters):
     """An internal helper for Union creation and substitution: flatten Unions
     among parameters, then remove duplicates.
     """
@@ -273,6 +273,23 @@ def _remove_dups_flatten(parameters):
     params = []
     for p in parameters:
         if isinstance(p, (_UnionGenericAlias, types.UnionType)):
+            params.extend(p.__args__)
+        elif isinstance(p, tuple) and len(p) > 0 and p[0] is Union:
+            params.extend(p[1:])
+        else:
+            params.append(p)
+
+    return tuple(_deduplicate(params))
+
+
+def _remove_dups_flatten_intersection(parameters):
+    """An internal helper for Intersection creation and substitution: flatten Intersections
+    among parameters, then remove duplicates.
+    """
+    # Flatten out Intersection[Intersection[...], ...].
+    params = []
+    for p in parameters:
+        if isinstance(p, (_IntersectionGenericAlias, types.IntersectionType)):
             params.extend(p.__args__)
         elif isinstance(p, tuple) and len(p) > 0 and p[0] is Union:
             params.extend(p[1:])
@@ -514,7 +531,7 @@ def Union(self, parameters):
         parameters = (parameters,)
     msg = "Union[arg, ...]: each arg must be a type."
     parameters = tuple(_type_check(p, msg) for p in parameters)
-    parameters = _remove_dups_flatten(parameters)
+    parameters = _remove_dups_flatten_union(parameters)
     if len(parameters) == 1:
         return parameters[0]
     if len(parameters) == 2 and type(None) in parameters:
@@ -533,7 +550,7 @@ def Intersection(self, parameters):
         parameters = (parameters,)
     msg = "Intersection[arg, ...]: each arg must be a type."
     parameters = tuple(_type_check(p, msg) for p in parameters)
-    parameters = _remove_dups_flatten(parameters)
+    parameters = _remove_dups_flatten_intersection(parameters)
     if len(parameters) == 1:
         return parameters[0]
     # if len(parameters) == 2 and type(None) in parameters:

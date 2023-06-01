@@ -2201,6 +2201,8 @@ def _signature_fromstr(cls, obj, s, skip_bound_arg=True):
                 return ast.Constant(left.value - right.value)
             elif isinstance(node.op, ast.BitOr):
                 return ast.Constant(left.value | right.value)
+            elif isinstance(node.op, ast.BitAnd):
+                return ast.Constant(left.value & right.value)
             raise ValueError
 
     def p(name_node, default_node, default=empty):

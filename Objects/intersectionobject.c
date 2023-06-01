@@ -107,12 +107,12 @@ intersection_subclasscheck(PyObject *self, PyObject *instance)
             if (res < 0) {
                 return NULL;
             }
-            if (res) {
-                Py_RETURN_TRUE;
+            if (!res) {
+                Py_RETURN_FALSE;
             }
         }
     }
-    Py_RETURN_FALSE;
+    Py_RETURN_TRUE;
 }
 
 static PyObject *

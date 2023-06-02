@@ -490,6 +490,12 @@ class _SpecialForm(_Final, _NotIterable, _root=True):
     def __ror__(self, other):
         return Union[other, self]
 
+    def __and__(self, other):
+        return Intersection[self, other]
+
+    def __rand__(self, other):
+        return Intersection[other, self]
+
     def __instancecheck__(self, obj):
         raise TypeError(f"{self} cannot be used with isinstance()")
 
@@ -989,6 +995,12 @@ class _BoundVarianceMixin:
     def __ror__(self, left):
         return Union[left, self]
 
+    def __and__(self, other):
+        return Intersection[self, other]
+
+    def __rand__(self, other):
+        return Intersection[other, self]
+
     def __repr__(self):
         if self.__covariant__:
             prefix = '+'
@@ -1401,6 +1413,12 @@ class _GenericAlias(_BaseGenericAlias, _root=True):
     def __ror__(self, left):
         return Union[left, self]
 
+    def __and__(self, other):
+        return Intersection[self, other]
+
+    def __rand__(self, other):
+        return Intersection[other, self]
+
     @_tp_cache
     def __getitem__(self, args):
         # Parameterizes an already-parameterized object.
@@ -1599,6 +1617,12 @@ class _SpecialGenericAlias(_NotIterable, _BaseGenericAlias, _root=True):
 
     def __ror__(self, left):
         return Union[left, self]
+
+    def __and__(self, other):
+        return Intersection[self, other]
+
+    def __rand__(self, other):
+        return Intersection[other, self]
 
 class _CallableGenericAlias(_NotIterable, _GenericAlias, _root=True):
     def __repr__(self):
@@ -2449,7 +2473,7 @@ def _strip_annotations(t):
 def get_origin(tp):
     """Get the unsubscripted version of a type.
 
-    This supports generic types, Callable, Tuple, Union, Literal, Final, ClassVar
+    This supports generic types, Callable, Tuple, Union, Intersection, Literal, Final, ClassVar
     and Annotated. Return None for unsupported types. Examples::
 
         get_origin(Literal[42]) is Literal
@@ -2470,6 +2494,8 @@ def get_origin(tp):
         return Generic
     if isinstance(tp, types.UnionType):
         return types.UnionType
+    if isinstance(tp, types.IntersectionType):
+        return types.IntersectionType
     return None
 
 
@@ -2492,6 +2518,8 @@ def get_args(tp):
             res = (list(res[:-1]), res[-1])
         return res
     if isinstance(tp, types.UnionType):
+        return tp.__args__
+    if isinstance(tp, types.IntersectionType):
         return tp.__args__
     return ()
 
@@ -3197,6 +3225,12 @@ class NewType:
 
     def __ror__(self, other):
         return Union[other, self]
+
+    def __and__(self, other):
+        return Intersection[self, other]
+
+    def __rand__(self, other):
+        return Intersection[other, self]
 
 
 # Python-version-specific alias (Python 2: unicode; Python 3: str)

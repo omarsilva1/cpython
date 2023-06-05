@@ -722,7 +722,6 @@ def Intersection(self, parameters):
     """
     Intersection type; Intersection[X, Y] means X and Y.
         """
-    print("Intersection types!")
     if parameters == ():
         raise TypeError("Cannot take a Intersection of no types.")
     if not isinstance(parameters, tuple):
@@ -732,8 +731,6 @@ def Intersection(self, parameters):
     parameters = _remove_dups_flatten_intersection(parameters)
     if len(parameters) == 1:
         return parameters[0]
-    # if len(parameters) == 2 and type(None) in parameters:
-    #     return _IntersectionGenericAlias(self, parameters, name="Optional")
     return _IntersectionGenericAlias(self, parameters)
 
 @_SpecialForm

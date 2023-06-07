@@ -1350,6 +1350,7 @@ class _IntersectionGenericAlias(_GenericAlias, _root=True):
         for arg in self.__args__:
             if not issubclass(cls, arg):
                 return False
+        return True
 
     def __reduce__(self):
         func, (origin, args) = super().__reduce__()

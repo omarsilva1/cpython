@@ -2698,6 +2698,8 @@ recursive_issubclass(PyObject *derived, PyObject *cls)
                      "issubclass() arg 1 must be a class"))
         return -1;
 
+    //TODO OMAR We could possibly do the subclassing check here, as its done with tuple and union, but
+    // since the functionality of intersection subclassing is different, we can leave it in the intersection class
     if (!_PyUnion_Check(cls) && !check_class(cls,
                             "issubclass() arg 2 must be a class,"
                             " a tuple of classes, a union or an intersection")) {

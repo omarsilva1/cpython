@@ -197,7 +197,6 @@ def _type_check(arg, msg, is_argument=True, module=None, *, allow_special_forms=
     if isinstance(arg, (type, TypeVar, ForwardRef, types.UnionType, types.IntersectionType, ParamSpec,
                         ParamSpecArgs, ParamSpecKwargs)):
         return arg
-    if not callable(arg):
     if type(arg) is tuple:
         raise TypeError(f"{msg} Got {arg!r:.100}.")
     return arg

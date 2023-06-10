@@ -2,6 +2,7 @@
 #include "Python.h"
 #include "pycore_object.h"  // _PyObject_GC_TRACK/UNTRACK
 #include "pycore_unionobject.h"
+#include "pycore_intersectionobject.h"
 #include "structmember.h"
 
 

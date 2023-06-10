@@ -152,7 +152,8 @@ is_unionable(PyObject *obj)
     return (obj == Py_None ||
         PyType_Check(obj) ||
         _PyGenericAlias_Check(obj) ||
-        _PyUnion_Check(obj));
+        _PyUnion_Check(obj) ||
+        _PyIntersection_Check(obj));
 }
 
 PyObject *
@@ -337,6 +338,7 @@ static PyGetSetDef union_properties[] = {
 
 static PyNumberMethods union_as_number = {
         .nb_or = _Py_union_type_or, // Add __or__ function
+        .nb_and = _Py_intersection_type_and, // Add __and__ function
 };
 
 static const char* const cls_attrs[] = {

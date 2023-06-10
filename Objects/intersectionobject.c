@@ -232,7 +232,8 @@ is_intersectionable(PyObject *obj)
     return (obj == Py_None ||
         PyType_Check(obj) ||
         _PyGenericAlias_Check(obj) ||
-        _PyIntersection_Check(obj));
+        _PyIntersection_Check(obj) ||
+        _PyUnion_Check(obj));
 }
 
 PyObject *
@@ -416,6 +417,7 @@ static PyGetSetDef intersection_properties[] = {
 
 static PyNumberMethods intersection_as_number = {
         .nb_and = _Py_intersection_type_and, // Add __and__ function
+        .nb_or = _Py_union_type_or, // Add __or__ function
 };
 
 static const char* const cls_attrs[] = {

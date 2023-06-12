@@ -16,7 +16,7 @@ from typing import Any, NoReturn, Never, assert_never
 from typing import overload, get_overloads, clear_overloads
 from typing import TypeVar, TypeVarTuple, Unpack, AnyStr
 from typing import T, KT, VT  # Not in __all__.
-from typing import Union, Optional, Literal
+from typing import Union, Optional, Intersection, Literal
 from typing import Tuple, List, Dict, MutableMapping
 from typing import Callable
 from typing import Generic, ClassVar, Final, final, Protocol
@@ -1484,6 +1484,156 @@ class UnionTests(BaseTestCase):
             return Element(*args)
 
         Union[Elem, str]  # Nor should this
+
+
+class IntersectionTests(BaseTestCase):
+
+    def test_basics(self):
+        u = Intersection[int, float]
+        self.assertNotEqual(u, Intersection)
+
+    def test_subclass(self):
+        self.assertIsInstance(ManagingFounder(), Intersection[Manager, Founder])
+        self.assertTrue(issubclass(ManagingFounder, Intersection[Manager, Founder]))
+        self.assertFalse(issubclass(Manager, Intersection[Employee, Founder]))
+
+    def test_subclass_error(self):
+        with self.assertRaises(TypeError):
+            issubclass(int, Intersection)
+        with self.assertRaises(TypeError):
+            issubclass(Intersection, int)
+        with self.assertRaises(TypeError):
+            issubclass(Intersection[int, str], int)
+
+    def test_intersection_any(self):
+        u = Intersection[Any]
+        self.assertEqual(u, Any)
+        u1 = Intersection[int, Any]
+        u2 = Intersection[Any, int]
+        u3 = Intersection[Any, object]
+        self.assertEqual(u1, u2)
+        self.assertNotEqual(u1, Any)
+        self.assertNotEqual(u2, Any)
+        self.assertNotEqual(u3, Any)
+
+    def test_intersection_object(self):
+        u = Intersection[object]
+        self.assertEqual(u, object)
+        u1 = Intersection[int, object]
+        u2 = Intersection[object, int]
+        self.assertEqual(u1, u2)
+        self.assertNotEqual(u1, object)
+        self.assertNotEqual(u2, object)
+
+    def test_unordered(self):
+        u1 = Intersection[int, float]
+        u2 = Intersection[float, int]
+        self.assertEqual(u1, u2)
+
+    def test_single_class_disappears(self):
+        t = Intersection[Employee]
+        self.assertIs(t, Employee)
+
+    def test_base_class_kept(self):
+        u = Intersection[Employee, Manager]
+        self.assertNotEqual(u, Employee)
+        self.assertIn(Employee, u.__args__)
+        self.assertIn(Manager, u.__args__)
+
+    def test_intersection_intersection(self):
+        u = Intersection[int, float]
+        v = Intersection[u, Employee]
+        self.assertEqual(v, Intersection[int, float, Employee])
+
+    def test_repr(self):
+        self.assertEqual(repr(Intersection), 'typing.Intersection')
+        u = Intersection[Employee, int]
+        self.assertEqual(repr(u), 'typing.Intersection[%s.Employee, int]' % __name__)
+        u = Intersection[int, Employee]
+        self.assertEqual(repr(u), 'typing.Intersection[int, %s.Employee]' % __name__)
+        T = TypeVar('T')
+        u = Intersection[T, int][int]
+        self.assertEqual(repr(u), repr(int))
+        u = Intersection[List[int], int]
+        self.assertEqual(repr(u), 'typing.Intersection[typing.List[int], int]')
+        u = Intersection[list[int], dict[str, float]]
+        self.assertEqual(repr(u), 'typing.Intersection[list[int], dict[str, float]]')
+        u = Intersection[int & float]
+        self.assertEqual(repr(u), 'typing.Intersection[int, float]')
+
+        u = Intersection[None, str]
+        self.assertEqual(repr(u), 'typing.Optional[str]')
+        u = Intersection[str, None]
+        self.assertEqual(repr(u), 'typing.Optional[str]')
+        u = Intersection[None, str, int]
+        self.assertEqual(repr(u), 'typing.Intersection[NoneType, str, int]')
+        u = Optional[str]
+        self.assertEqual(repr(u), 'typing.Optional[str]')
+
+    def test_cannot_subclass(self):
+        with self.assertRaises(TypeError):
+            class C(Intersection):
+                pass
+        with self.assertRaises(TypeError):
+            class C(type(Intersection)):
+                pass
+        with self.assertRaises(TypeError):
+            class C(Intersection[int, str]):
+                pass
+
+    def test_cannot_instantiate(self):
+        with self.assertRaises(TypeError):
+            Intersection()
+        with self.assertRaises(TypeError):
+            type(Intersection)()
+        u = Intersection[int, float]
+        with self.assertRaises(TypeError):
+            type(u)()
+
+    def test_intersection_generalization(self):
+        self.assertFalse(Intersection[str, typing.Iterable[int]] == str)
+        self.assertFalse(Intersection[str, typing.Iterable[int]] == typing.Iterable[int])
+        self.assertIn(str, Intersection[str, typing.Iterable[int]].__args__)
+        self.assertIn(typing.Iterable[int], Intersection[str, typing.Iterable[int]].__args__)
+
+    def test_intersection_compare_other(self):
+        self.assertNotEqual(Intersection, object)
+        self.assertNotEqual(Intersection, Any)
+        self.assertNotEqual(ClassVar, Intersection)
+        self.assertNotEqual(Optional, Intersection)
+        self.assertNotEqual([None], Optional)
+        self.assertNotEqual(Optional, typing.Mapping)
+        self.assertNotEqual(Optional[typing.MutableMapping], Intersection)
+
+    def test_empty(self):
+        with self.assertRaises(TypeError):
+            Intersection[()]
+
+    def test_no_eval_intersection(self):
+        u = Intersection[int, str]
+        def f(x: u): ...
+        self.assertIs(get_type_hints(f)['x'], u)
+
+    def test_function_repr_intersection(self):
+        def fun() -> int: ...
+        self.assertEqual(repr(Intersection[fun, int]), 'typing.Intersection[fun, int]')
+
+    def test_intersection_str_pattern(self):
+        # Shouldn't crash; see http://bugs.python.org/issue25390
+        A = Intersection[str, Pattern]
+        A
+
+    def test_etree(self):
+        # See https://github.com/python/typing/issues/229
+        # (Only relevant for Python 2.)
+        from xml.etree.ElementTree import Element
+
+        Intersection[Element, str]  # Shouldn't crash
+
+        def Elem(*args):
+            return Element(*args)
+
+        Intersection[Elem, str]  # Nor should this
 
 
 class TupleTests(BaseTestCase):

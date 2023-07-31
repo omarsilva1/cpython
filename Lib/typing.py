@@ -1744,7 +1744,6 @@ class _IntersectionGenericAlias(_GenericAlias, _root=True):
         return self.__subclasscheck__(type(obj))
 
     def __subclasscheck__(self, cls):
-        # TODO OMAR: implementing subclass check fixes issubclass(int, Intersection[bool, int]) but not the case of & notation
         for arg in self.__args__:
             if not issubclass(cls, arg):
                 return False
